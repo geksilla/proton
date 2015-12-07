@@ -24,14 +24,23 @@ Now copy file **proton.js** from ```dev_server/proton.js``` into ```plugin/lib/`
 $ cp -f dev_server/proton.js plugin/lib/proton.js
 ```
 
+### Linux
 Next open **atom** from ```plugin/lib``` folder. This step is required because
 compiled .cljs code try to resolve path injected by **atom**.
 
 ```sh
-$ cd plugin/lib; atom .
+$ cd /path/to/proton/plugin/lib; atom
 ```
 
-Path to ```/your/local/proton/plugin/lib``` will be set to **process.env.PWD**
+### Mac OS
+
+Run Atom binary from **Atom.app**:
+
+```sh
+ $ YOUR_APPLICATIONS_PATH/Atom.app/Contents/MacOS/Atom --executed-from=/path/to/proton/plugin/lib --pid=$$
+```
+
+Path to ```/path/to/proton/plugin/lib``` will be set to **process.env.PWD**
 and path to local compiled *.js* files will be resolved successfully.
 
 When first **atom** window opened you should see **cljs.user=>** prompt on figweel
