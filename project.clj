@@ -10,7 +10,8 @@
 
   :source-paths ["src"]
 
-  :plugins [[lein-cljsbuild "1.1.1"]]
+  :plugins [[lein-cljsbuild "1.1.1"]
+            [lein-figwheel "0.5.0-2"]]
 
   :profiles {:dev {:source-paths ["src/dev"]
                    :dependencies [[thheller/shadow-devtools "0.1.31"]
@@ -31,6 +32,19 @@
                            :output-to "plugin/lib/proton.js"
                            :output-dir "plugin/lib/out"
                            :source-map-timestamp true}}
+               ;; development server using figwheel
+               ;; run it as:
+               ;; lein figwheel dev-server
+               {:id "dev-server"
+                :source-paths ["src"]
+                :figwheel true
+                :compiler {:main "proton.core"
+                           :target :nodejs
+                           :optimizations :none
+                           :source-map true
+                           :asset-path "out_dev"
+                           :output-dir "plugin/lib/out_dev"
+                           :output-to "plugin/lib/proton-dev.js"}}
                ;; This next build is an compressed minified build for
                ;; production. You can build this with:
                ;; lein cljsbuild once min
