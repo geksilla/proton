@@ -14,6 +14,8 @@
                                        (clj->js {:visible false
                                                   :item @element}))))
 
+;; (defn get-model [element] (.getModel (.getView views element)))
+
 (def modal-element (atom (generate-div "test" "proton-modal-panel")))
 (def modal-panel (atom (.addModalPanel workspace (clj->js {:visible false
                                                            :item @modal-element}))))

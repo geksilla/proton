@@ -102,6 +102,7 @@
                   (do
                     (.enablePackage (.-packages js/atom) "relative-numbers")
                     (swap! state assoc-in [:relative-numbers] true))))}}
+    :m {:category "mode"}
     :_ {:category "meta"
         :d {:title "find-dotfile"
             :fx (fn []

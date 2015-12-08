@@ -4,6 +4,7 @@
             [proton.lib.atom :as atom-env]
             [proton.lib.package_manager :as pm]
             [proton.lib.proton :as proton]
+            [proton.lib.mode :as mode-manager]
             [cljs.nodejs :as node]
             [clojure.string :as string :refer [lower-case upper-case]]
 
@@ -37,9 +38,12 @@
 ;; Initialise new composite-disposable so we can add stuff to it later
 (def subscriptions (new composite-disposable))
 
-(def command-tree (atom {}))
-(def current-chain (atom []))
+(defonce command-tree (atom {}))
+(defonce current-chain (atom []))
 
+(def mode-key :m)
+(defn is-mode-key? [chain-key]
+  (not (nil? (some #{mode-key} chain-key))))
 
 (defn ^:export chain [e]
   (let [key-code (helpers/extract-keycode-from-event e)
@@ -56,9 +60,16 @@
             (atom-env/eval-action! @command-tree @current-chain)
             ;; if not, continue chaining
             (let [extracted-chain (get-in @command-tree @current-chain)]
-              (if (nil? extracted-chain)
-                (atom-env/deactivate-proton-mode!)
-                (atom-env/update-bottom-panel (helpers/tree->html extracted-chain)))))))))
+              (cond (nil? extracted-chain) (atom-env/deactivate-proton-mode!)
+                    (is-mode-key? @current-chain)
+                    (do
+                      (.log js/console (mode-manager/get-mode-keybindings (proton/get-active-editor)))
+                      (if-let [mode-keymap (mode-manager/get-mode-keybindings (proton/get-active-editor))]
+                        (do
+                          (swap! command-tree assoc-in [:m] mode-keymap)
+                          (atom-env/update-bottom-panel (helpers/tree->html (get-in @command-tree @current-chain))))
+                        (atom-env/deactivate-proton-mode!)))
+                    :else (atom-env/update-bottom-panel (helpers/tree->html extracted-chain)))))))))
 
 (defn init []
   (go
@@ -138,10 +149,13 @@
 
 (defn ^:export activate [state]
   (.setTimeout js/window #(init) 2000)
+  (proton/init-subscriptions subscriptions)
   (.onDidMatchBinding keymaps #(if (= "space" (.-keystrokes %)) (on-space)))
   (.add subscriptions (.add commands "atom-text-editor.proton-mode" "proton:chain" chain)))
 
-(defn ^:export deactivate [] (.log js/console "deactivating..."))
+(defn ^:export deactivate []
+  (.log js/console "deactivating...")
+  (.dispose subscriptions))
 
 ;; We need to set module.exports to our core class.
 ;; Atom is using Proton.activate on this

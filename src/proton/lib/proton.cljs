@@ -1,7 +1,9 @@
 (ns proton.lib.proton
   (:require [cljs.reader :as reader]
             [cljs.nodejs :as node]
+            [proton.lib.mode :as editor-mode]
             [proton.lib.helpers :as helpers]
+            [proton.lib.atom :as atom-env]
             [proton.layers.base :as layerbase]))
 
 (def config-path (str (.. js/process -env -HOME) "/.proton"))
@@ -37,3 +39,17 @@
 
 (defn init-layers! [layers config]
   (doall (map #(layerbase/init-layer! (keyword %) config) layers)))
+
+(defn get-active-editor []
+  (let [editor (.getActiveTextEditor atom-env/workspace)]
+   (if-not (.isMini editor) editor nil)))
+
+(defn- on-active-pane-item [item]
+  (when (= get-active-editor item)
+   (editor-mode/set-active-for item)))
+
+(defn init-subscriptions [subscriptions] (.onDidChangeActivePaneItem atom-env/workspace on-active-pane-item))
+
+(defn new-fn [] ())
+(defn set-mode-keybindings [modes]
+  ())
