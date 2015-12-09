@@ -13,11 +13,13 @@
 (defn file-extension [editor]
   "Returns file extenstion.
   For dotfiles returns file name."
+  (if-let [file-path (.getPath editor)]
    (let [parsed (.parse path (.getPath editor))
          extension (.-ext parsed)]
     (if (= extension "")
         (.-base parsed)
-        extension)))
+        extension))
+   ""))
 
 (defn is-mode-activated? [editor] (get editor :active))
 
@@ -34,7 +36,8 @@
 
 (defn find-mode-by-grammar [grammar]
   (if-let [filtered (first (filter-modes-by-key-val :atom-grammars grammar))]
-   (first filtered) nil))
+   (first filtered)
+   nil))
 
 (defn mode-extensions-filter [ext]
   (fn [coll]
@@ -45,7 +48,9 @@
      false)))
 
 (defn find-mode-by-file-extension [extension]
-  (filter (mode-extensions-filter extension) (map-modes-with :file-extensions)))
+  (if-let [filtered (first (filter (mode-extensions-filter extension) (map-modes-with :file-extensions)))]
+    (first filtered)
+    nil))
 
 (defn get-mode-keybindings [editor]
   (if-let [mode-name (find-mode-by-grammar (editor-grammar editor))]
@@ -54,9 +59,13 @@
 
 (defn get-available-mode [editor]
    (let [by-grammar (find-mode-by-grammar (editor-grammar editor))
-         by-extension (find-mode-by-file-extension (file-extension editor))]))
+         by-extension (find-mode-by-file-extension (file-extension editor))]
+    (or by-grammar by-extension)))
 
 (defn activate-mode [editor]
   (when-not (find-first #(= (get % :id)) @editors)
    (do
-      (let [modes (get-available-mode editor)]))))
+      (if-let [mode (get-available-mode editor)]
+        (if-let [init-fn (get-in @modes [mode :init])]
+          (do
+           (init-fn)))))))

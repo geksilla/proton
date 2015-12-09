@@ -40,12 +40,9 @@
 (defn init-layers! [layers config]
   (doall (map #(layerbase/init-layer! (keyword %) config) layers)))
 
-(defn get-active-editor []
-  (let [editor (.getActiveTextEditor atom-env/workspace)]
-   (if-not (.isMini editor) editor nil)))
-
 (defn- on-active-pane-item [item]
-  (when (= get-active-editor item)
-   (mode-manager/activate-mode item)))
+  (if-let [editor (atom-env/get-active-editor)]
+    (when (= (.-id editor) (.-id item))
+     (mode-manager/activate-mode editor))))
 
 (defn init-subscriptions [subscriptions] (.onDidChangeActivePaneItem atom-env/workspace on-active-pane-item))
