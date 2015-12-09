@@ -1,7 +1,7 @@
 (ns proton.lib.proton
   (:require [cljs.reader :as reader]
             [cljs.nodejs :as node]
-            [proton.lib.mode :as editor-mode]
+            [proton.lib.mode :as mode-manager]
             [proton.lib.helpers :as helpers]
             [proton.lib.atom :as atom-env]
             [proton.layers.base :as layerbase]))
@@ -46,10 +46,6 @@
 
 (defn- on-active-pane-item [item]
   (when (= get-active-editor item)
-   (editor-mode/set-active-for item)))
+   (mode-manager/activate-mode item)))
 
 (defn init-subscriptions [subscriptions] (.onDidChangeActivePaneItem atom-env/workspace on-active-pane-item))
-
-(defn new-fn [] ())
-(defn set-mode-keybindings [modes]
-  ())

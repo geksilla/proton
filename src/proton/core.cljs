@@ -63,7 +63,6 @@
               (cond (nil? extracted-chain) (atom-env/deactivate-proton-mode!)
                     (is-mode-key? @current-chain)
                     (do
-                      (.log js/console (mode-manager/get-mode-keybindings (proton/get-active-editor)))
                       (if-let [mode-keymap (mode-manager/get-mode-keybindings (proton/get-active-editor))]
                         (do
                           (swap! command-tree assoc-in [:m] mode-keymap)
