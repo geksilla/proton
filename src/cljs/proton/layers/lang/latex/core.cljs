@@ -12,7 +12,8 @@
      :autocomplete-bibtex
      :pdf-view]))
 
-(defmethod init-layer! :lang/latex [_ config]
+(defmethod init-layer! :lang/latex
+  [_ {:keys [config layers]}]
   (let [config-map (into (hash-map) config)]
     (if (config-map "proton.lang.latex.use-latex-plus")
       (do
