@@ -7,8 +7,19 @@
   []
   [["proton.lang.javascript.linter" "eslint"]])
 
+(defn- toggle-linter [linter]
+  (case (keyword linter)
+   :eslint (do
+            (package/enable-package "linter-eslint")
+            (package/disable-package "linter-jshint"))
+   :jshint (do
+            (package/enable-package "linter-jshint")
+            (package/disable-package "linter-eslint"))))
+
 (defmethod init-layer! :lang/javascript
   [_ config]
+  (let [config-map (into (hash-map) config)]
+    (toggle-linter (config-map "proton.lang.javascript.linter")))
   (println "hello javascript"))
 
 (defmethod get-keybindings :lang/javascript
@@ -20,10 +31,14 @@
   [:atom-ternjs
    :javascript-snippets
    :language-javascript
+   ; TODO move linters according to core layers in future
    :linter
    :linter-eslint
-   ;;:linter-jshint
+   :linter-jshint
+   :autocomplete-modules
+   ; TODO move this to frameworks layer
    :react
+   :react-snippets
    :docblockr])
 
 (defmethod get-keymaps :lang/javascript
@@ -42,4 +57,7 @@
      :s {:category "symbols/show"
          :l {:action "symbols-view:toggle-file-symbols" :target actions/get-active-editor :title "file symbols"}}
      :r {:category "refactor"
-         :r {:action "tern:rename" :target actions/get-active-editor :title "tern rename variable"}}}})
+         :r {:action "tern:rename" :target actions/get-active-editor :title "tern rename variable"}}
+     :L {:category "linters"
+          :e {:fx (fn [] (toggle-linter "eslint")) :title "use eslint"}
+          :j {:fx (fn [] (toggle-linter "jshint")) :title "use jshint"}}}})
