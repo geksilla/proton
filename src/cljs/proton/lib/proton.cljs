@@ -8,6 +8,18 @@
 
 (def config-path (str (.. js/process -env -HOME) "/.proton"))
 
+(defn- method-filter
+  "Takes `defmulti` method name and vector of values to dispatch.
+  Returns list of associated dispatchers."
+   [method dispatchers]
+ (filter #(not (nil? %)) (map #(if (nil? (get-method method %)) nil (keyword %)) dispatchers)))
+
+(defn get-vector-from-multimethod
+  "Takes `defmulti` method name and list of dispatchers.
+  Returns a vector as result of executed method."
+   [method dispatchers]
+  (reduce concat (map #(method (keyword %)) (method-filter method dispatchers))))
+
 (defn get-config-template-path []
   (let [path (node/require "path")]
     (.resolve path (str js/__dirname "/../templates/proton.edn"))))
@@ -26,7 +38,9 @@
   (reader/read-string (helpers/read-file config-path)))
 
 (defn packages-for-layers [layers]
-  (into [] (distinct (reduce concat (map #(layerbase/get-packages (keyword %)) layers)))))
+  (let [layers-packages (get-vector-from-multimethod layerbase/get-packages layers)
+        dependencies (get-vector-from-multimethod layerbase/package-deps layers-packages)]
+      (into [] (distinct (concat layers-packages dependencies)))))
 
 (defn keybindings-for-layers [layers]
   (reduce helpers/deep-merge (map #(layerbase/get-keybindings (keyword %)) layers)))
@@ -53,3 +67,15 @@
      (mode-manager/activate-mode editor))))
 
 (defn panel-item-subscription [] (.onDidChangeActivePaneItem atom-env/workspace on-active-pane-item))
+
+(defn execute-methods
+  "Takes `defmulti` method name and vector of values to dispatch.
+  Executes all methods for associated dispatch values."
+   [method dispatchers]
+ (doall (map method (method-filter method dispatchers))))
+
+(defn run-post-init
+  "Takes packages (vector of keywords).
+  Executes `post-init` multimethod for associated package names."
+   [packages]
+ (execute-methods layerbase/post-init packages))

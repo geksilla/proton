@@ -140,7 +140,7 @@
               (do
                 (atom-env/insert-process-step! (str "Installing new packages: None"))
                 (atom-env/mark-last-step-as-completed!))))
-
+          (proton/run-post-init all-packages)
           ;; Remove deleted packages
           (let [to-remove (pm/get-to-remove all-packages)]
             (if (> (count to-remove) 0)

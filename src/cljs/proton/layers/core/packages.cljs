@@ -22,6 +22,7 @@
      :atom-material-syntax
 
      :file-icons
+     :linter
 
      ;; core packages
      ;; TODO: move me somewhere else

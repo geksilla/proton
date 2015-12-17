@@ -1,4 +1,5 @@
 (ns proton.layers.lang.elixir.core
+  (:require [proton.lib.atom :as atom-env])
   (:use [proton.layers.base :only [init-layer! get-initial-config get-keybindings get-packages get-keymaps describe-mode]]))
 
 (defmethod init-layer! :lang/elixir
