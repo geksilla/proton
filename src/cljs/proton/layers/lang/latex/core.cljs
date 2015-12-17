@@ -1,4 +1,5 @@
 (ns proton.layers.lang.latex.core
+  (:require [proton.lib.helpers :as helpers])
   (:use [proton.layers.base :only [init-layer! get-initial-config get-keybindings get-packages get-keymaps describe-mode]]))
 
 (defmethod get-initial-config :lang/latex []
@@ -14,6 +15,8 @@
 
 (defmethod init-layer! :lang/latex
   [_ {:keys [config layers]}]
+  (helpers/console! "init" :lang/latex)
+
   (let [config-map (into (hash-map) config)]
     (if (config-map "proton.lang.latex.use-latex-plus")
       (do
