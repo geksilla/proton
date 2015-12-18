@@ -1,49 +1,44 @@
 (ns proton.layers.lang.javascript.core
   (:require [proton.layers.core.actions :as actions :refer [state]]
-            [proton.lib.package_manager :as package])
-  (:use [proton.layers.base :only [init-layer! get-initial-config get-keybindings get-packages get-keymaps describe-mode]]))
+            [proton.lib.package_manager :as package]
+            [proton.lib.helpers :as helpers])
+  (:use [proton.layers.base :only [init-layer! get-initial-config get-packages describe-mode register-layer-dependencies]]))
+
+(def fallback-linter "eslint")
+
+(register-layer-dependencies :tools/linter [:linter-eslint :linter-jshint])
 
 (defmethod get-initial-config :lang/javascript
   []
-  [["proton.lang.javascript.linter" "eslint"]])
+  [["proton.lang.javascript.linter" fallback-linter]])
+
 
 (defn- toggle-linter [linter]
-  (case (keyword linter)
-   :eslint (do
-            (package/enable-package "linter-eslint")
-            (package/disable-package "linter-jshint"))
-   :jshint (do
-            (package/enable-package "linter-jshint")
-            (package/disable-package "linter-eslint"))))
+  (let [linter (if (nil? (some #{linter} ["eslint" "jshint"])) fallback-linter linter)]
+    (case (keyword linter)
+     :eslint (do
+              (package/enable-package "linter-eslint")
+              (package/disable-package "linter-jshint" true))
+     :jshint (do
+              (package/enable-package "linter-jshint")
+              (package/disable-package "linter-eslint" true)))))
 
 (defmethod init-layer! :lang/javascript
-  [_ config]
+  [_ {:keys [config layers]}]
   (let [config-map (into (hash-map) config)]
     (toggle-linter (config-map "proton.lang.javascript.linter")))
-  (println "hello javascript"))
-
-(defmethod get-keybindings :lang/javascript
-  []
-  {})
+  (helpers/console! "hello javascript"))
 
 (defmethod get-packages :lang/javascript
   []
   [:atom-ternjs
    :javascript-snippets
    :language-javascript
-   ; TODO move linters according to core layers in future
-   :linter
-   :linter-eslint
-   :linter-jshint
    :autocomplete-modules
-   ; TODO move this to frameworks layer
+   :docblockr
+   ; TODO move this to separate frameworks layer
    :react
-   :react-snippets
-   :docblockr])
-
-(defmethod get-keymaps :lang/javascript
-  []
-  [])
+   :react-snippets])
 
 (defmethod describe-mode :lang/javascript
   []
